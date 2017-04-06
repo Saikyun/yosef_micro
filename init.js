@@ -6,11 +6,30 @@ game.data = game.data || {};
 (() => {
 	let normie = game.units.normie;
 	let enemy = game.units.enemy;
+	let mage = game.units.mage;
+	let enemize_unit = game.units.enemize_unit;
 
 	let tick_and_render = (ctx, units, attacks) => {
 		game.tick(units, attacks);
 		game.render(ctx, units, attacks);
 	};
+
+	let generate_armies = () => {
+		let units = [];
+		
+		for (let i = 0; i < 100; i++) {
+			units.push(normie([20 + 3 * (i % 10), 70 + 4 * Math.floor(i / 10)]));
+			units.push(enemy([20 + 3 * (i % 10), 20 + 4 * Math.floor(i / 10)]));
+		}
+
+		for (let i = 0; i < 10; i++) {
+			units.push(enemize_unit(
+				mage([20 + 3 * (i % 10), 10 + 4 * Math.floor(i / 10)])
+			));
+		}
+		
+		return units;
+	}
 
 	let init = () => {
 		let canvas = document.createElement('canvas');
@@ -24,11 +43,7 @@ game.data = game.data || {};
 
 		game.data.ctx = ctx;
 
-		let units = [];
-		for (let i = 0; i < 40; i++) {
-			units.push(normie([20 + 3 * (i % 10), 70 + 4 * Math.floor(i / 10)]));
-			units.push(enemy([20 + 3 * (i % 10), 20 + 4 * Math.floor(i / 10)]));
-		}
+		let units = generate_armies();
 		
 		game.data.units = units;
 		game.data.attacks = [];

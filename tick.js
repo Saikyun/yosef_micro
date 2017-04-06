@@ -6,24 +6,9 @@ var game = game || {};
 	let set_status = game.units.set_status;
 	let unit = game.units.unit;
 	let affect = game.units.affect;
-
-	let collides = (thing1, thing2) => {
-		let eq_vec = game.maths.eq_vec;
-
-		let pos1 = get_status(thing1, "pos");
-		let pos2 = get_status(thing2, "pos");
-		//let size1 = get_status(thing1, "size");
-		//let size2 = get_status(thing2, "size");
-
-		if (pos1 == null || pos2 == null) {
-			false
-		} else {
-			return eq_vec(pos1, pos2);
-		}
-	};
-
+	let collides = game.units.collides;
+	
 	let tick = (units, attacks) => {
-
 		let attacks_to_remove = [];
 
 		for (let i = 0; i < attacks.length; i++) {
@@ -41,19 +26,23 @@ var game = game || {};
 			attacks.splice(i - removed, 1);
 			removed += 1;
 		}
-
-		console.log("attacks", attacks);
-
+		
+		let teams = {
+		};
+		
 		let units_to_remove = [];
 		for (let i = 0; i < units.length; i++) {
 			let unit = units[i];
-			
-			let pos = get_status(unit, "pos");
-			unit.move();
 
+			teams[unit.statuses.team] = teams[unit.statuses.team] || [];
+			teams[unit.statuses.team].push(unit);
+			
 			if (get_status(unit, "dead", false)) {
 				units_to_remove.push(i);
 			} else {
+				let pos = get_status(unit, "pos");
+				unit.move();
+
 				if (units.filter(u => u !== unit && collides(u, unit)).length > 0) {
 					set_status(unit, "pos", pos);
 					set_status(unit, "vel", [0, 0]);
@@ -61,10 +50,11 @@ var game = game || {};
 
 				attacks.filter((attack) => 
 					attack.attacker !== unit &&
-						collides(unit, attack)
+							   !attack.statuses.dead &&
+							   collides(unit, attack)
 				).map((attack, i) => {
 					affect(unit, attack.effects.enemies);
-					console.log(unit + " got affected " + attack.effects.enemies);
+					attack.statuses.dead = true;
 				});
 			}
 		}
@@ -76,10 +66,11 @@ var game = game || {};
 		}
 
 		for (let unit of units) {
-			let attack = unit.attack();
+			let attack = unit.attack(teams);
 			if (attack != null) { attacks.push(attack); }
 		}
 
+		
 	};
 
 	game.tick = tick;

@@ -3,6 +3,29 @@
 var game = game || {};
 
 (() => {
+	
+	let collides = (thing1, thing2) => {
+		let eq_vec = game.maths.eq_vec;
+
+		let pos1 = get_status(thing1, "pos");
+		let pos2 = get_status(thing2, "pos");
+		let size1 = get_status(thing1, "size");
+		let size2 = get_status(thing2, "size");
+
+		size1 = size1 || [1, 1];
+		size2 = size2 || [1, 1];
+
+		if (pos1 == null || pos2 == null) {
+			console.log("got null for collision");
+			return false;
+		} else {
+			return pos1[0] + size1[0] * 0.5 >= pos2[0] - size2[0] * 0.5
+				&& pos1[0] - size1[0] * 0.5 <= pos2[0] + size2[0] * 0.5
+				&& pos1[1] + size1[1] * 0.5 >= pos2[1] - size1[1] * 0.5
+				&& pos1[1] - size1[1] * 0.5 <= pos2[1] + size2[1] * 0.5;
+		}
+	};
+
 	let get_status = (unit, status, start_status) => {
 		if (unit.statuses[status] != null) {
 			return unit.statuses[status];
@@ -78,4 +101,6 @@ var game = game || {};
 	game.units.delay = delay;
 	game.units.create_attack = create_attack;
 	game.units.update_status = update_status;
+	game.units.collides = collides;
+
 })();

@@ -5,24 +5,56 @@ var game = game || {};
 (() => {
 	let add_vec = game.maths.add_vec;
 	let multiply_vec = game.maths.multiply_vec;
-	let eq_vec = game.maths.eq_vec;
+	let eq_vec = game.maths.eq_vec;	
+	let randi = game.maths.randi;
 	
 	let get_status = game.units.get_status;
 	let set_status = game.units.set_status;
 	let update_status = game.units.update_status;
 	let unit = game.units.unit;
+	let collides = game.units.collides;
 	let delay = game.units.delay;
 	let create_attack = game.units.create_attack;
 	
 	let normie = (pos) => {
-		let normie_attack = (unit) => {
+		let normie_attack = (unit, teams) => {
+			let enemy_team;
+			for (let team in teams) {
+				if (team != unit.statuses.team) {
+					enemy_team = teams[team];
+					break;
+				}
+			}
+
+			if (enemy_team == null) { return; }
+
+			let attack_hitbox = {
+				statuses: {
+					pos: add_vec(normie.statuses.pos,
+								 normie.statuses.dir),
+					size: [3, 1]
+				}
+			};
+
+			let should_attack = false;
+			for (let enemy of enemy_team) {
+				if (collides(enemy, attack_hitbox)) {
+					should_attack = true;
+					break;
+				}
+			}
+			if (!should_attack) { return; }
+
 			let attack = create_attack(
 				unit,
 				{ enemies: [
 					{ status: "health",
-					  method: (health) => health - 1 }
+					  method: (health) => health - 100 }
 				] },
+				// update
 				() => {
+					attack.statuses.trail.push(attack.statuses.pos);
+					
 					update_status(
 						attack,
 						"pos",
@@ -53,7 +85,9 @@ var game = game || {};
 					),
 					vel: [-get_status(unit, "dir")[1],
 						  0],
-					ticks_left: 2
+					size: [1, 1],
+					ticks_left: 2,
+					trail: []
 				}
 			);
 
@@ -62,14 +96,23 @@ var game = game || {};
 
 		let normie = unit(
 			"Normie",
-			() => {
+			
+			// attack
+			(teams) => {
 				if (get_status(normie, "delay", 0) <= 0) {
-					delay(normie, 5);
-					return normie_attack(normie);
+					let attack = normie_attack(normie, teams);
+
+					if (attack != null) {
+						delay(normie, randi(18, 22));
+					}
+
+					return attack;
 				}
 			},
+			
+			// move
 			() => {
-				if (get_status(normie, "health") === 0) {
+				if (get_status(normie, "health") <= 0) {
 					set_status(normie, "dead", true);
 				} else {
 					if (get_status(normie, "try_to_move_in", 0) > 0) {
@@ -103,11 +146,15 @@ var game = game || {};
 					}
 				}
 			},
+			
 			{
-				health: 5,
+				health: 200,
 				pos: pos,
 				vel: [0, -1],
-				dir: [0, -1]
+				size: [1, 1],
+				dir: [0, -1],
+				team: "friendly",
+				job: "knight"
 			}
 		);
 

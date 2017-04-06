@@ -6,14 +6,16 @@ var game = game || {};
 	let normie = game.units.normie;
 	let set_status = game.units.set_status;
 
-	let enemy = (pos) => {
-		let normie_in_disguise = normie(pos);
+	let enemy = pos => enemize_unit(normie(pos));
 
-		set_status(normie_in_disguise, "vel", [0, 1]);
-		set_status(normie_in_disguise, "dir", [0, 1]);
+	let enemize_unit = unit => {
+		set_status(unit, "vel", [0, 1]);
+		set_status(unit, "dir", [0, 1]);
+		set_status(unit, "team", "enemy");
 
-		return normie_in_disguise;
+		return unit;
 	};
 
 	game.units.enemy = enemy;
+	game.units.enemize_unit = enemize_unit;
 })();
