@@ -20,6 +20,7 @@ var game = game || {};
 		let enemy_team;
 		for (let team in teams) {
 			if (team != unit.statuses.team) {
+				console.log("teams are not same", team, unit.statuses.team);
 				enemy_team = teams[team];
 				break;
 			}
@@ -75,7 +76,7 @@ var game = game || {};
 				
 				let change_in_dir =
 					(angle_fix(poses_angle - current_dir) < Math.PI ?
-					 1 : -1) * 0.2;
+					 1 : -1) * (0.3 * (attack.statuses.vel / start_vel));
 
 				if (between(-0.05, poses_angle - current_dir, 0.05)) {
 					change_in_dir = poses_angle - current_dir;

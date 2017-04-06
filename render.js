@@ -8,7 +8,7 @@ var game = game || {};
 	let unit = game.units.unit;
 
 	let render = (ctx, units, attacks) => {
-		ctx.clearRect(0, 0, 600, 800);
+		ctx.clearRect(0, 0, 1000, 800);
 		
 		for (let unit of units) {
 			render_unit(ctx, unit);

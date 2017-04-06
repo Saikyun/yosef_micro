@@ -18,13 +18,13 @@ game.data = game.data || {};
 		let units = [];
 		
 		for (let i = 0; i < 100; i++) {
-			units.push(normie([20 + 3 * (i % 10), 70 + 4 * Math.floor(i / 10)]));
-			units.push(enemy([20 + 3 * (i % 10), 20 + 4 * Math.floor(i / 10)]));
+			units.push(normie([40 + 3 * (i % 10), 70 + 4 * Math.floor(i / 10)]));
+			units.push(enemy([40 + 3 * (i % 10), 20 + 4 * Math.floor(i / 10)]));
 		}
 
 		for (let i = 0; i < 10; i++) {
 			units.push(enemize_unit(
-				mage([20 + 3 * (i % 10), 10 + 4 * Math.floor(i / 10)])
+				mage([40 + 3 * (i % 10), 10 + 4 * Math.floor(i / 10)])
 			));
 		}
 		
@@ -36,7 +36,7 @@ game.data = game.data || {};
 		canvas.id = "game_canvas";
 		document.body.appendChild(canvas);
 
-		canvas.width = 600;
+		canvas.width = 1000;
 		canvas.height = 800;
 
 		let ctx = canvas.getContext("2d");
