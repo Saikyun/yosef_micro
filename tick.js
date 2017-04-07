@@ -41,7 +41,7 @@ var game = game || {};
 				units_to_remove.push(i);
 			} else {
 				let pos = get_status(unit, "pos");
-				unit.move();
+				unit.move(teams);
 
 				if (units.filter(u => u !== unit && collides(u, unit)).length > 0) {
 					set_status(unit, "pos", pos);

@@ -80,7 +80,6 @@ var game = game || {};
 			ctx.moveTo(x * 8 + w / 2, y * 8 + h / 2);
 			
 			ctx.beginPath();
-			console.log(x, y);
 
 			for (let pos of trail.slice(-3)) {
 				let [x, y] = pos;

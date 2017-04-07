@@ -16,15 +16,34 @@ var game = game || {};
 	let angle_vel_to_delta = game.maths.angle_vel_to_delta;
 	let between = game.maths.between;
 
-	let fireball = (unit, teams) => {
+	let get_enemy_team = (teams, my_team) => {
 		let enemy_team;
+		
 		for (let team in teams) {
-			if (team != unit.statuses.team) {
+			if (team != my_team) {
 				enemy_team = teams[team];
 				break;
 			}
 		}
 
+		return enemy_team;
+	};
+
+	let get_friendly_team = (teams, my_team) => {
+		let friendly_team;
+		
+		for (let team in teams) {
+			if (team == my_team) {
+				friendly_team = teams[team];
+				break;
+			}
+		}
+
+		return friendly_team;
+	};
+	
+	let fireball = (unit, teams) => {
+		let enemy_team = get_enemy_team(teams, unit.statuses.team);
 		if (enemy_team == null) { return; }
 
 		let target = enemy_team[
@@ -109,13 +128,15 @@ var game = game || {};
 					delta
 				);
 
-				attack.statuses.size = [Math.abs(delta[0]) + 1, Math.abs(delta[1]) + 1];
+				attack.statuses.size = [Math.abs(delta[0]) + 1,
+										Math.abs(delta[1]) + 1];
 
 				attack.statuses.trail.push(attack.statuses.pos);
 			},
 			
 			{
 				name: "Fireball",
+				
 				pos: add_vec(
 					get_status(unit, "pos"),
 					[-(get_status(unit, "dir")[0]
@@ -126,6 +147,7 @@ var game = game || {};
 				vel: start_vel,
 				size: [1, 1],
 				dir: Math.PI * rand(1.25, 1.75),
+				
 				alive_for: 0,
 				trail: [],
 				delay: 5,
@@ -139,6 +161,7 @@ var game = game || {};
 		let unit = normie(pos);
 
 		set_status(unit, "job", "mage");
+		set_status(unit, "vel", [0, 0]);
 
 		unit.attack = (teams) => {
 			if (get_status(unit, "delay", 0) <= 0) {
@@ -146,7 +169,8 @@ var game = game || {};
 				return fireball(unit, teams);
 			}
 		};
-		unit.move = () => {
+		
+		unit.move = (teams) => {
 			if (get_status(unit, "health") <= 0) {
 				set_status(unit, "dead", true);
 			} else if (get_status(unit, "delay", 0) > 0) {
@@ -155,6 +179,38 @@ var game = game || {};
 					"delay",
 					delay => delay - 1,
 					get_status(unit, "delay"));
+
+				let friendly_team = get_friendly_team(teams,
+													  unit.statuses.team);
+				if (friendly_team == null) { return; }
+
+				let closest_knight_in_x = friendly_team
+					.sort(unit => unit.statuses.pos[0] - unit.statuses.pos[0])
+				    [0];
+
+				if (closest_knight_in_x == null) { return; }
+
+				let distance = unit.statuses.pos[0] - closest_knight_in_x.statuses.pos[0];
+				
+				console.log(distance);
+				if (Math.abs(distance) > 10) {
+					if (distance > 1) {
+						unit.statuses.vel[0] = -1;
+					} else if (distance < -1) {
+						unit.statuses.vel[0] = 1;
+					} else {
+						unit.statuses.vel[0] = -distance;
+					}
+				} else {
+					unit.statuses.vel[0] = 0;
+				}
+				unit.statuses.vel[1] = 0;
+
+				update_status(
+					unit,
+					"pos",
+					add_vec,
+					get_status(unit, "vel"));
 			}
 		};
 
