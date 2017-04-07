@@ -87,6 +87,7 @@ var game = game || {};
 
 				let target_pos = add_vec(target.statuses.pos,
 										 target.statuses.vel);
+				
 				let pos = attack.statuses.pos;
 
 				let angle_fix = angle => {
@@ -142,7 +143,7 @@ var game = game || {};
 					[-(get_status(unit, "dir")[0]
 					   + (-1
 						  * get_status(unit, "dir")[1])),
-					 get_status(unit, "dir")[1]]
+					 -get_status(unit, "dir")[1]]
 				),
 				vel: start_vel,
 				size: [1, 1],
@@ -185,14 +186,14 @@ var game = game || {};
 				if (friendly_team == null) { return; }
 
 				let closest_knight_in_x = friendly_team
+				    .filter(unit => unit.statuses.job == "knight")
 					.sort(unit => unit.statuses.pos[0] - unit.statuses.pos[0])
 				    [0];
 
 				if (closest_knight_in_x == null) { return; }
 
 				let distance = unit.statuses.pos[0] - closest_knight_in_x.statuses.pos[0];
-				
-				console.log(distance);
+
 				if (Math.abs(distance) > 10) {
 					if (distance > 1) {
 						unit.statuses.vel[0] = -1;
@@ -204,7 +205,29 @@ var game = game || {};
 				} else {
 					unit.statuses.vel[0] = 0;
 				}
-				unit.statuses.vel[1] = 0;
+
+				let friendly_mages = friendly_team
+				    .filter(unit => unit.statuses.job == "mage");
+				
+				let average_mage_y = friendly_mages
+					.reduce(
+						(acc, unit) => { return acc + unit.statuses.pos[1]; },
+						0)
+					/ friendly_mages.length;
+
+				distance = unit.statuses.pos[1] - average_mage_y;
+
+				if (Math.abs(distance) > 0) {
+					if (distance > 1) {
+						unit.statuses.vel[1] = -1;
+					} else if (distance < -1) {
+						unit.statuses.vel[1] = 1;
+					} else {
+						unit.statuses.vel[1] = -distance;
+					}
+				} else {
+					unit.statuses.vel[1] = 0;
+				}
 
 				update_status(
 					unit,

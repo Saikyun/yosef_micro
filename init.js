@@ -25,7 +25,7 @@ game.data = game.data || {};
 
 		for (let i = 0; i < 10; i++) {
 			units.push(enemize_unit(
-				mage([60 + 3 * (i % 10), 10 + rand(0, 0) + 8 * Math.floor(i / 10)])
+				mage([60 + 3 * (i % 10), 10 + rand(0, 5) + 8 * Math.floor(i / 10)])
 			));
 		}
 		
