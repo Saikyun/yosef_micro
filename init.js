@@ -7,6 +7,7 @@ game.data = game.data || {};
 	let normie = game.units.normie;
 	let enemy = game.units.enemy;
 	let mage = game.units.mage;
+	let rand = game.maths.rand;
 	let enemize_unit = game.units.enemize_unit;
 
 	let tick_and_render = (ctx, units, attacks) => {
@@ -24,7 +25,7 @@ game.data = game.data || {};
 
 		for (let i = 0; i < 10; i++) {
 			units.push(enemize_unit(
-				mage([40 + 3 * (i % 10), 10 + 4 * Math.floor(i / 10)])
+				mage([60 + 3 * (i % 10), 10 + rand(0, 5) + 8 * Math.floor(i / 10)])
 			));
 		}
 		
@@ -58,7 +59,7 @@ game.data = game.data || {};
 		setTimeout(() => { tick_and_render(game.data.ctx,
 										   game.data.units,
 										   game.data.attacks);
-						   start(); }, 200);
+						   start(); }, 50);
 	};
 
 	start();

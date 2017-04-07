@@ -76,6 +76,7 @@ var game = game || {};
 					}
 				},
 				{
+					name: "Strike",
 					pos: add_vec(
 						get_status(unit, "pos"),
 						[-(get_status(unit, "dir")[0]
@@ -153,8 +154,13 @@ var game = game || {};
 				vel: [0, -1],
 				size: [1, 1],
 				dir: [0, -1],
+
+				delay: 5,
+				try_to_move_in: 3,
+				dead: false,
+				
 				team: "friendly",
-				job: "knight"
+				job: "knight",
 			}
 		);
 

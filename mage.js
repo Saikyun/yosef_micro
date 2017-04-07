@@ -20,7 +20,6 @@ var game = game || {};
 		let enemy_team;
 		for (let team in teams) {
 			if (team != unit.statuses.team) {
-				console.log("teams are not same", team, unit.statuses.team);
 				enemy_team = teams[team];
 				break;
 			}
@@ -33,9 +32,20 @@ var game = game || {};
 				 enemy_team.length)
 		];
 
-		let start_vel = 10;
-		let decline_func = vel => Math.sqrt(Math.pow(vel, 2) - Math.pow(vel, 2) * 0.1);
-		let min_vel = 1.5;
+		let start_vel = 7;
+		let decline_func = vel => Math.sqrt(Math.pow(vel, 2) - Math.pow(vel, 2) * 0.07);
+		let min_vel = 1;
+
+		let modify_change_in_dir = (dir, vel) => {
+			if (vel > start_vel * 0.8) {
+				return dir * 0.3;
+			} else if (vel < min_vel * 2) {
+				return dir * 0.4;
+			} else {
+				return dir * 0.1;
+			}
+		}
+
 
 		let attack = create_attack(
 			unit,
@@ -45,8 +55,6 @@ var game = game || {};
 			] },
 			// update
 			() => {
-				attack.statuses.trail.push(attack.statuses.pos);
-
 				if (target.statuses.dead === true) {
 					attack.statuses.dead = true;
 				}
@@ -76,7 +84,10 @@ var game = game || {};
 				
 				let change_in_dir =
 					(angle_fix(poses_angle - current_dir) < Math.PI ?
-					 1 : -1) * (0.3 * (attack.statuses.vel / start_vel));
+					 1 : -1);
+
+				change_in_dir = modify_change_in_dir(
+					change_in_dir, attack.statuses.vel);
 
 				if (between(-0.05, poses_angle - current_dir, 0.05)) {
 					change_in_dir = poses_angle - current_dir;
@@ -99,9 +110,12 @@ var game = game || {};
 				);
 
 				attack.statuses.size = [Math.abs(delta[0]) + 1, Math.abs(delta[1]) + 1];
+
+				attack.statuses.trail.push(attack.statuses.pos);
 			},
 			
 			{
+				name: "Fireball",
 				pos: add_vec(
 					get_status(unit, "pos"),
 					[-(get_status(unit, "dir")[0]
@@ -114,6 +128,7 @@ var game = game || {};
 				dir: Math.PI * rand(1.25, 1.75),
 				alive_for: 0,
 				trail: [],
+				delay: 5,
 			}
 		);
 
@@ -132,7 +147,9 @@ var game = game || {};
 			}
 		};
 		unit.move = () => {
-			if (get_status(unit, "delay", 0) > 0) {
+			if (get_status(unit, "health") <= 0) {
+				set_status(unit, "dead", true);
+			} else if (get_status(unit, "delay", 0) > 0) {
 				update_status(
 					unit,
 					"delay",
