@@ -30,7 +30,7 @@ var game = game || {};
 		if (unit.statuses[status] != null) {
 			return unit.statuses[status];
 		} else if (start_status != null) {
-			console.log(status + " of " + unit + " is null");
+			console.log(status + " of", unit, "is null");
 
 			unit.statuses[status] = start_status;
 			return unit.statuses.status

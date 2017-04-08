@@ -88,7 +88,9 @@ var game = game || {};
 						  0],
 					size: [1, 1],
 					ticks_left: 2,
-					trail: []
+					trail: [],
+
+					dead: false,
 				}
 			);
 

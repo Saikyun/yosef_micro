@@ -152,6 +152,9 @@ var game = game || {};
 				alive_for: 0,
 				trail: [],
 				delay: 5,
+
+				dead: false,
+				
 			}
 		);
 
