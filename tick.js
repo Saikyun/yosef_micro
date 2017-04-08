@@ -2,8 +2,6 @@
 
 var game = game || {};
 (() => {
-	let get_status = game.units.get_status;
-	let set_status = game.units.set_status;
 	let unit = game.units.unit;
 	let affect = game.units.affect;
 	let collides = game.units.collides;
@@ -14,7 +12,7 @@ var game = game || {};
 		for (let i = 0; i < attacks.length; i++) {
 			let attack = attacks[i];
 			
-			if (!get_status(attack, "dead", false)) {
+			if (!attack.dead) {
 				attack.move();
 			} else {
 				attacks_to_remove.push(i);
@@ -34,27 +32,27 @@ var game = game || {};
 		for (let i = 0; i < units.length; i++) {
 			let unit = units[i];
 
-			teams[unit.statuses.team] = teams[unit.statuses.team] || [];
-			teams[unit.statuses.team].push(unit);
+			teams[unit.team] = teams[unit.team] || [];
+			teams[unit.team].push(unit);
 			
-			if (get_status(unit, "dead", false)) {
+			if (unit.dead) {
 				units_to_remove.push(i);
 			} else {
-				let pos = get_status(unit, "pos");
+				let pos = unit.pos;
 				unit.move(teams);
 
 				if (units.filter(u => u !== unit && collides(u, unit)).length > 0) {
-					set_status(unit, "pos", pos);
-					set_status(unit, "vel", [0, 0]);
+					unit.pos = pos;
+					unit.vel = [0, 0];
 				}
 
 				attacks.filter((attack) => 
 					attack.attacker !== unit &&
-							   !attack.statuses.dead &&
+							   !attack.dead &&
 							   collides(unit, attack)
 				).map((attack, i) => {
 					affect(unit, attack.effects.enemies);
-					attack.statuses.dead = true;
+					attack.dead = true;
 				});
 			}
 		}

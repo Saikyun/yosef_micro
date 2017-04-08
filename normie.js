@@ -8,8 +8,6 @@ var game = game || {};
 	let eq_vec = game.maths.eq_vec;	
 	let randi = game.maths.randi;
 	
-	let get_status = game.units.get_status;
-	let set_status = game.units.set_status;
 	let update_status = game.units.update_status;
 	let unit = game.units.unit;
 	let collides = game.units.collides;
@@ -20,7 +18,7 @@ var game = game || {};
 		let normie_attack = (unit, teams) => {
 			let enemy_team;
 			for (let team in teams) {
-				if (team != unit.statuses.team) {
+				if (team != unit.team) {
 					enemy_team = teams[team];
 					break;
 				}
@@ -29,11 +27,9 @@ var game = game || {};
 			if (enemy_team == null) { return; }
 
 			let attack_hitbox = {
-				statuses: {
-					pos: add_vec(normie.statuses.pos,
-								 normie.statuses.dir),
-					size: [3, 1]
-				}
+				pos: add_vec(normie.pos,
+							 normie.dir),
+				size: [3, 1]
 			};
 
 			let should_attack = false;
@@ -51,45 +47,47 @@ var game = game || {};
 					{ status: "health",
 					  method: (health) => health - 100 }
 				] },
+				
 				// update
 				() => {
-					attack.statuses.trail.push(attack.statuses.pos);
+					attack.trail.push(attack.pos);
 					
 					update_status(
 						attack,
 						"pos",
 						add_vec,
 						[
-							get_status(attack, "vel")[0],
-							get_status(attack.attacker, "vel")[1]
+							attack.vel[0],
+							attack.attacker.vel[1]
 						])
 
 					update_status(
 						attack,
 						"ticks_left",
 						tick => tick - 1,
-						get_status(attack, "ticks_left"))
+						attack.ticks_left)
 
-					if (get_status(attack, "ticks_left") <= 0) {
+					if (attack.ticks_left <= 0) {
 						console.log("died");
-						set_status(attack, "dead", true);
+						attack.dead = true;
 					}
 				},
+				
 				{
 					name: "Strike",
 					pos: add_vec(
-						get_status(unit, "pos"),
-						[-(get_status(unit, "dir")[0]
+						unit.pos,
+						[-(unit.dir[0]
 						   + (-1
-							  * get_status(unit, "dir")[1])),
-						 get_status(unit, "dir")[1]]
+							  * unit.dir[1])),
+						 unit.dir[1]]
 					),
-					vel: [-get_status(unit, "dir")[1],
+					vel: [-unit.dir[1],
 						  0],
 					size: [1, 1],
 					ticks_left: 2,
 					trail: [],
-
+					
 					dead: false,
 				}
 			);
@@ -102,7 +100,7 @@ var game = game || {};
 			
 			// attack
 			(teams) => {
-				if (get_status(normie, "delay", 0) <= 0) {
+				if (normie.delay <= 0) {
 					let attack = normie_attack(normie, teams);
 
 					if (attack != null) {
@@ -115,37 +113,37 @@ var game = game || {};
 			
 			// move
 			() => {
-				if (get_status(normie, "health") <= 0) {
-					set_status(normie, "dead", true);
+				if (normie.health <= 0) {
+					normie.dead = true;
 				} else {
-					if (get_status(normie, "try_to_move_in", 0) > 0) {
+					if (normie.try_to_move_in > 0) {
 						update_status(
 							normie,
 							"try_to_move_in",
 							pause => pause - 1,
-							get_status(normie, "try_to_move_in"));
-					} else if (get_status(normie, "try_to_move_in") === 0) {
-						set_status(normie, "vel", get_status(normie, "dir"));
-						set_status(normie, "try_to_move_in", -1);
+							normie.try_to_move_in);
+					} else if (normie.try_to_move_in === 0) {
+						normie.vel = normie.dir;
+						normie.try_to_move_in = -1;
 					} else if (eq_vec(
-						get_status(normie, "vel"),
+						normie.vel,
 						[0, 0]
 					)) {
-						set_status(normie, "try_to_move_in", 3);
+						normie.try_to_move_in = 3;
 					} else {
 						update_status(
 							normie,
 							"pos",
 							add_vec,
-							get_status(normie, "vel"));
+							normie.vel);
 					}
 
-					if (get_status(normie, "delay", 0) > 0) {
+					if (normie.delay > 0) {
 						update_status(
 							normie,
 							"delay",
 							delay => delay - 1,
-							get_status(normie, "delay"));
+							normie.delay);
 					}
 				}
 			},

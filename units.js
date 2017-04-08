@@ -7,10 +7,10 @@ var game = game || {};
 	let collides = (thing1, thing2) => {
 		let eq_vec = game.maths.eq_vec;
 
-		let pos1 = get_status(thing1, "pos");
-		let pos2 = get_status(thing2, "pos");
-		let size1 = get_status(thing1, "size");
-		let size2 = get_status(thing2, "size");
+		let pos1 = thing1.pos;
+		let pos2 = thing2.pos;
+		let size1 = thing1.size;
+		let size2 = thing2.size;
 
 		size1 = size1 || [1, 1];
 		size2 = size2 || [1, 1];
@@ -26,46 +26,44 @@ var game = game || {};
 		}
 	};
 
-	let get_status = (unit, status, start_status) => {
-		if (unit.statuses[status] != null) {
-			return unit.statuses[status];
-		} else if (start_status != null) {
-			console.log(status + " of", unit, "is null");
+	let update_status = (unit, status, method, args) => {
+		let old_status = unit[status];
 
-			unit.statuses[status] = start_status;
-			return unit.statuses.status
+		if (old_status == null) {
+			console.log(unit, "has no", status);
 		}
 
-		console.log(status + " of " + unit + " is null");
-	};
-
-	let update_status = (unit, status, method, args, start_status) => {
-		let old_status = get_status(unit, status, start_status);
 		let new_status = method(old_status, args);
 
-		unit.statuses[status] = new_status;
+		unit[status] = new_status;
 	};
 
-	let set_status = (unit, status, value) => {
-		update_status(unit, status, () => value);
-	};
-
-	let unit = (name, attack, move, statuses) => {
-		return {
+	let unit = (name, attack, move, rest) => {
+		let obj = {
 			name: name,
 			attack: attack,
 			move: move,
-			statuses: statuses,
 		};
+
+		for (let attr in rest) {
+			obj[attr] = rest[attr];
+		}
+
+		return obj;
 	};
 
-	let create_attack = (attacker, effects, move, statuses) => {
-		return {
+	let create_attack = (attacker, effects, move, rest) => {
+		let obj = {
 			attacker: attacker,
 			effects: effects,
 			move: move,
-			statuses: statuses,
 		};
+		
+		for (let attr in rest) {
+			obj[attr] = rest[attr];
+		}
+
+		return obj;
 	};
 
 	let affect = (unit, effects) => {
@@ -86,8 +84,7 @@ var game = game || {};
 			[
 				{
 					status: "delay",
-					method: (delay) => delay + length,
-					args: get_status(unit, "delay", 0)
+					method: delay => delay + length,
 				}
 			]);
 	};
@@ -96,8 +93,6 @@ var game = game || {};
 	game.units.unit = unit;
 	game.units.create_attack = create_attack;
 	game.units.affect = affect;
-	game.units.get_status = get_status;
-	game.units.set_status = set_status;
 	game.units.delay = delay;
 	game.units.create_attack = create_attack;
 	game.units.update_status = update_status;

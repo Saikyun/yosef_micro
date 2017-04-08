@@ -4,9 +4,7 @@ var game = game || {};
 
 (() => {
 	let normie = game.units.normie;
-	let set_status = game.units.set_status;
 	let update_status = game.units.update_status;
-	let get_status = game.units.get_status;
 	let delay = game.units.delay;
 	let create_attack = game.units.create_attack;
 
@@ -43,7 +41,7 @@ var game = game || {};
 	};
 	
 	let fireball = (unit, teams) => {
-		let enemy_team = get_enemy_team(teams, unit.statuses.team);
+		let enemy_team = get_enemy_team(teams, unit.team);
 		if (enemy_team == null) { return; }
 
 		let target = enemy_team[
@@ -74,8 +72,8 @@ var game = game || {};
 			] },
 			// update
 			() => {
-				if (target.statuses.dead === true) {
-					attack.statuses.dead = true;
+				if (target.dead === true) {
+					attack.dead = true;
 				}
 
 				update_status(
@@ -83,12 +81,12 @@ var game = game || {};
 					"vel",
 					decline_func);
 
-				if (attack.statuses.vel < min_vel) { attack.statuses.vel = min_vel; }
+				if (attack.vel < min_vel) { attack.vel = min_vel; }
 
-				let target_pos = add_vec(target.statuses.pos,
-										 target.statuses.vel);
+				let target_pos = add_vec(target.pos,
+										 target.vel);
 				
-				let pos = attack.statuses.pos;
+				let pos = attack.pos;
 
 				let angle_fix = angle => {
 					while (angle > 2 * Math.PI) { angle -= 2 * Math.PI; }
@@ -100,26 +98,26 @@ var game = game || {};
 				let poses_angle = angle_fix(Math.atan2(target_pos[1] - pos[1],
 													   target_pos[0] - pos[0]));
 
-				let current_dir = attack.statuses.dir;
+				let current_dir = attack.dir;
 				
 				let change_in_dir =
 					(angle_fix(poses_angle - current_dir) < Math.PI ?
 					 1 : -1);
 
 				change_in_dir = modify_change_in_dir(
-					change_in_dir, attack.statuses.vel);
+					change_in_dir, attack.vel);
 
 				if (between(-0.05, poses_angle - current_dir, 0.05)) {
 					change_in_dir = poses_angle - current_dir;
 				}
 
-				attack.statuses.dir += change_in_dir;
+				attack.dir += change_in_dir;
 
-				attack.statuses.dir = angle_fix(attack.statuses.dir);
+				attack.dir = angle_fix(attack.dir);
 
 				let delta = angle_vel_to_delta(
-					attack.statuses.dir,
-					attack.statuses.vel
+					attack.dir,
+					attack.vel
 				);
 
 				update_status(
@@ -129,21 +127,21 @@ var game = game || {};
 					delta
 				);
 
-				attack.statuses.size = [Math.abs(delta[0]) + 1,
+				attack.size = [Math.abs(delta[0]) + 1,
 										Math.abs(delta[1]) + 1];
 
-				attack.statuses.trail.push(attack.statuses.pos);
+				attack.trail.push(attack.pos);
 			},
 			
 			{
 				name: "Fireball",
 				
 				pos: add_vec(
-					get_status(unit, "pos"),
-					[-(get_status(unit, "dir")[0]
-					   + (-1
-						  * get_status(unit, "dir")[1])),
-					 -get_status(unit, "dir")[1]]
+					unit.pos,
+					[-(unit.dir[0]
+					 + (-1
+						* unit.dir[1])),
+					 -unit.dir[1]]
 				),
 				vel: start_vel,
 				size: [1, 1],
@@ -164,79 +162,79 @@ var game = game || {};
 	let mage = (pos) => {
 		let unit = normie(pos);
 
-		set_status(unit, "job", "mage");
-		set_status(unit, "vel", [0, 0]);
+		unit.job = "mage";
+		unit.vel = [0, 0];
 
 		unit.attack = (teams) => {
-			if (get_status(unit, "delay", 0) <= 0) {
+			if (unit.delay <= 0) {
 				delay(unit, 50);
 				return fireball(unit, teams);
 			}
 		};
 		
 		unit.move = (teams) => {
-			if (get_status(unit, "health") <= 0) {
-				set_status(unit, "dead", true);
-			} else if (get_status(unit, "delay", 0) > 0) {
+			if (unit.health <= 0) {
+				unit.dead = true;
+			} else if (unit.delay > 0) {
 				update_status(
 					unit,
 					"delay",
 					delay => delay - 1,
-					get_status(unit, "delay"));
+					unit.delay);
 
 				let friendly_team = get_friendly_team(teams,
-													  unit.statuses.team);
+													  unit.team);
 				if (friendly_team == null) { return; }
 
 				let closest_knight_in_x = friendly_team
-				    .filter(unit => unit.statuses.job == "knight")
-					.sort(unit => unit.statuses.pos[0] - unit.statuses.pos[0])
+				    .filter(unit => unit.job == "knight")
+					.sort(unit => unit.pos[0] - unit.pos[0])
 				    [0];
 
 				if (closest_knight_in_x == null) { return; }
 
-				let distance = unit.statuses.pos[0] - closest_knight_in_x.statuses.pos[0];
+				let distance = unit.pos[0] - closest_knight_in_x.pos[0];
 
 				if (Math.abs(distance) > 10) {
 					if (distance > 1) {
-						unit.statuses.vel[0] = -1;
+						unit.vel[0] = -1;
 					} else if (distance < -1) {
-						unit.statuses.vel[0] = 1;
+						unit.vel[0] = 1;
 					} else {
-						unit.statuses.vel[0] = -distance;
+						unit.vel[0] = -distance;
 					}
 				} else {
-					unit.statuses.vel[0] = 0;
+					unit.vel[0] = 0;
 				}
 
 				let friendly_mages = friendly_team
-				    .filter(unit => unit.statuses.job == "mage");
+				    .filter(unit => unit.job == "mage");
 				
 				let average_mage_y = friendly_mages
 					.reduce(
-						(acc, unit) => { return acc + unit.statuses.pos[1]; },
+						(acc, unit) => { return acc + unit.pos[1]; },
 						0)
 					/ friendly_mages.length;
 
-				distance = unit.statuses.pos[1] - average_mage_y;
+				distance = unit.pos[1] - average_mage_y;
 
 				if (Math.abs(distance) > 0) {
 					if (distance > 1) {
-						unit.statuses.vel[1] = -1;
+						unit.vel[1] = -1;
 					} else if (distance < -1) {
-						unit.statuses.vel[1] = 1;
+						unit.vel[1] = 1;
 					} else {
-						unit.statuses.vel[1] = -distance;
+						unit.vel[1] = -distance;
 					}
 				} else {
-					unit.statuses.vel[1] = 0;
+					unit.vel[1] = 0;
 				}
 
 				update_status(
 					unit,
 					"pos",
 					add_vec,
-					get_status(unit, "vel"));
+					unit.vel);
 			}
 		};
 

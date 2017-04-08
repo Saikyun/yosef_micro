@@ -3,7 +3,6 @@
 var game = game || {};
 
 (() => {
-	let get_status = game.units.get_status;
 	let normie = game.units.normie;
 	let unit = game.units.unit;
 
@@ -37,10 +36,10 @@ var game = game || {};
 	};
 
 	let render_unit = (ctx, unit) => {
-		ctx.fillStyle = unit_colors[get_status(unit, "team")];
+		ctx.fillStyle = unit_colors[unit.team];
 		
-		let [x, y] = get_status(unit, "pos");
-		unit_job[get_status(unit, "job")](ctx, x * 8, y * 8, 8, 8);
+		let [x, y] = unit.pos;
+		unit_job[unit.job](ctx, x * 8, y * 8, 8, 8);
 	}
 
 	let attack_color = {
@@ -61,14 +60,14 @@ var game = game || {};
 	};
 
 	let render_attack = (ctx, attack) => {
-		let [x, y] = get_status(attack, "pos");
-		let color = attack_color[attack.statuses.name];
-		let shape = attack_shape[attack.statuses.name];
+		let [x, y] = attack.pos;
+		let color = attack_color[attack.name];
+		let shape = attack_shape[attack.name];
 
 		ctx.fillStyle = color;
 		shape(ctx, x * 8, y * 8, 8, 4);
 
-		let trail = get_status(attack, "trail", []);
+		let trail = attack.trail;
 		if (trail.length > 1) {
 			let [x, y] = trail[0];
 
