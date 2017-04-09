@@ -27,6 +27,9 @@ var game = game || {};
 		knight: (ctx, x, y, w, h) => {
 			ctx.fillRect(x, y, w, h);
 		},
+		ranger: (ctx, x, y, w, h) => {
+			ctx.fillRect(x, y, w, h);
+		},
 		mage: (ctx, x, y, w, h) => {
 			ctx.beginPath();
 			ctx.arc(x + w / 2, y + h / 2,

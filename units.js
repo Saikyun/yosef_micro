@@ -3,6 +3,24 @@
 var game = game || {};
 
 (() => {
+
+	let distance = (thing1, thing2) => {
+		
+		let pos1 = thing1.pos;
+		let pos2 = thing2.pos;
+
+		if (pos1 == null || pos2 == null) {
+			console.log("got null for distance");
+			return false;
+		} else {
+			let pow = Math.pow;
+			let distance = pow(pos1[0], 2) + pow(pos1[1], 2)
+				- pow(pos2[0], 2) + pow(pos2[1], 2);
+
+			return distance;
+		}
+
+	};
 	
 	let collides = (thing1, thing2) => {
 		let eq_vec = game.maths.eq_vec;
@@ -97,5 +115,6 @@ var game = game || {};
 	game.units.create_attack = create_attack;
 	game.units.update_status = update_status;
 	game.units.collides = collides;
+	game.units.distance = distance;
 
 })();

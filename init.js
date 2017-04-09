@@ -7,6 +7,7 @@ game.data = game.data || {};
 	let normie = game.units.normie;
 	let enemy = game.units.enemy;
 	let mage = game.units.mage;
+	let ranger = game.units.ranger;
 	let rand = game.maths.rand;
 	let enemize_unit = game.units.enemize_unit;
 
@@ -33,6 +34,13 @@ game.data = game.data || {};
 				mage([60 + 3 * (i % 10),
 					  10 + rand(0, 5) + 8 * Math.floor(i / 10)])
 			));
+		}
+		
+		for (let i = 0; i < 10; i++) {
+			units.push(
+				ranger([10 + 3 * (i % 10),
+						30 + rand(0, 5) + 8 * Math.floor(i / 10)])
+			);
 		}
 		
 		return units;
