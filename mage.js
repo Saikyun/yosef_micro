@@ -73,6 +73,10 @@ var game = game || {};
 			// update
 			() => {
 				if (target.dead === true) {
+					decline_func = vel => vel * 0.5;
+				}
+
+				if (attack.vel <= min_vel) {
 					attack.dead = true;
 				}
 
