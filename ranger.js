@@ -18,14 +18,27 @@ var game = game || {};
 
 		unit.job = "ranger";
 
-		unit.vel = 2;
+		let start_vel = 2;
+		unit.vel = start_vel;
 		unit.health = 200000000;
 		unit.dir = Math.PI * 0.5;
+		unit.try_to_move_in = 1;
 
 		unit.move = (teams) => {
 			if (unit.health <= 0) {
 				unit.dead = true;
-			} else if (unit.delay > 0) {
+			} else if (unit.try_to_move_in > 0) {
+				update_status(
+					unit,
+					"try_to_move_in",
+					pause => pause - 1,
+					unit.try_to_move_in);
+			} else if (unit.try_to_move_in === 0) {
+				unit.vel = start_vel;
+				unit.try_to_move_in = -1;
+			} else if (unit.vel <= 0) {
+				unit.try_to_move_in = 1;
+			} else {
 				let enemy_team = get_enemy_team(teams, unit.team);
 
 				if (enemy_team == null) { return; }
@@ -44,7 +57,7 @@ var game = game || {};
 							let d1 = distance(unit, target);
 							let d2 = distance(unit, enemy);
 
-							if (d1 > d2) { target = enemy; }
+							if (d1 < d2) { target = enemy; }
 						}
 					} else {
 						if (enemy.pos[0] < area_to_avoid.min[0]) {
@@ -75,8 +88,6 @@ var game = game || {};
 				let unchanged = true;
 				let target_dir = [0, 0];
 
-				console.log("1", unit.pos, target.pos, pos);
-
 				if (collides(danger_zone, unit)) {
 					console.log("hue", danger_zone, unit);
 					target_dir[0] += unit.pos[0] - pos[0];
@@ -91,10 +102,6 @@ var game = game || {};
 				}
 
 				if (!unchanged) {
-					if (isNaN(target_dir[0]) || isNaN(unit.pos[0])) {
-						console.log("2", target_dir, unit.dir, unit.vel);
-					}
-					
 					unit.dir = Math.atan2(
 						target_dir[1],
 						target_dir[0]
@@ -105,16 +112,20 @@ var game = game || {};
 						unit.vel
 					);
 					
-					if (isNaN(delta[0])) {
-						console.log("3", delta);
-					}
-					
 					update_status(
 						unit,
 						"pos",
 						add_vec,
 						delta
 					);
+				}
+
+				if (unit.delay > 0) {
+					update_status(
+						unit,
+						"delay",
+						delay => delay - 1,
+						unit.delay);
 				}
 			}
 		};
