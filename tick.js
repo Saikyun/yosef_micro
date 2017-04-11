@@ -24,7 +24,7 @@ var game = game || {};
 			attacks.splice(i - removed, 1);
 			removed += 1;
 		}
-		
+
 		let teams = {
 		};
 		
@@ -43,7 +43,7 @@ var game = game || {};
 
 				if (units.filter(u => u !== unit && collides(u, unit)).length > 0) {
 					unit.pos = pos;
-					unit.vel = [0, 0];
+					unit.vel = 0;
 				}
 
 				attacks.filter((attack) => 

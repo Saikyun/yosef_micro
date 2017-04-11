@@ -16,12 +16,13 @@ var game = game || {};
 	let add_vec = game.maths.add_vec;
 	let angle_vel_to_delta = game.maths.angle_vel_to_delta;
 	let between = game.maths.between;
+	let future_pos = game.maths.future_pos;
 
 	let mage = (pos) => {
 		let unit = normie(pos);
 
 		unit.job = "mage";
-		unit.vel = [0, 0];
+		unit.vel = 0;
 
 		unit.attack = (teams) => {
 			if (unit.delay <= 0) {
@@ -49,22 +50,27 @@ var game = game || {};
 					.sort(unit => unit.pos[0] - unit.pos[0])
 				[0];
 
-				if (closest_knight_in_x == null) { return; }
+				let target_dir = [0, 0];
+				let vel = 0;
 
-				let distance = unit.pos[0] - closest_knight_in_x.pos[0];
+				if (closest_knight_in_x != null) {
+					let distance = unit.pos[0] - closest_knight_in_x.pos[0];
 
-				if (Math.abs(distance) > 10) {
-					if (distance > 1) {
-						unit.vel[0] = -1;
-					} else if (distance < -1) {
-						unit.vel[0] = 1;
+					if (Math.abs(distance) > 10) {
+						vel += 0.75;
+
+						if (distance > 1) {
+							target_dir[0] = -1;
+						} else if (distance < -1) {
+							target_dir[0] = 1;
+						} else {
+							target_dir[0] = -distance;
+						}
 					} else {
-						unit.vel[0] = -distance;
+						target_dir[0] = 0;
 					}
-				} else {
-					unit.vel[0] = 0;
 				}
-
+				
 				let friendly_mages = friendly_team
 					.filter(unit => unit.job == "mage");
 
@@ -74,25 +80,38 @@ var game = game || {};
 						0)
 					/ friendly_mages.length;
 
-				distance = unit.pos[1] - average_mage_y;
+				let distance = unit.pos[1] - average_mage_y;
 
 				if (Math.abs(distance) > 0) {
+					vel += 0.25;
+					
 					if (distance > 1) {
-						unit.vel[1] = -1;
+						target_dir[1] = -1;
 					} else if (distance < -1) {
-						unit.vel[1] = 1;
+						target_dir[1] = 1;
 					} else {
-						unit.vel[1] = -distance;
+						target_dir[1] = -distance;
 					}
 				} else {
-					unit.vel[1] = 0;
+					target_dir[1] = 0;
 				}
+
+				unit.vel = vel;
+				unit.dir = Math.atan2(
+					target_dir[1],
+					target_dir[0]
+				);
+
+				let delta = angle_vel_to_delta(
+					unit.dir,
+					unit.vel
+				);
 
 				update_status(
 					unit,
 					"pos",
 					add_vec,
-					unit.vel);
+					delta);
 			}
 		};
 
@@ -129,63 +148,64 @@ var game = game || {};
 		let min_vel = 1;
 
 		let update = () => {
-				if (target.dead === true) {
-					decline_func = vel => vel * 0.5;
-				}
+			if (target.dead === true) {
+				decline_func = vel => vel * 0.5;
+			}
 
-				if (attack.vel <= min_vel) {
-					attack.dead = true;
-				}
+			if (attack.vel <= min_vel) {
+				attack.dead = true;
+			}
 
-				update_status(
-					attack,
-					"vel",
-					decline_func);
+			update_status(
+				attack,
+				"vel",
+				decline_func);
 
-				if (attack.vel < min_vel) { attack.vel = min_vel; }
+			if (attack.vel < min_vel) { attack.vel = min_vel; }
 
-				let target_pos = add_vec(target.pos,
-										 target.vel);
+			let target_pos = future_pos(target.pos,
+										target.dir,
+										target.vel);
 
-				let pos = attack.pos;
+			let pos = attack.pos;
 
-				let poses_angle = angle_fix(Math.atan2(target_pos[1] - pos[1],
-													   target_pos[0] - pos[0]));
+			let poses_angle = angle_fix(Math.atan2(target_pos[1] - pos[1],
+												   target_pos[0] - pos[0]));
 
-				let current_dir = attack.dir;
+			let current_dir = attack.dir;
 
-				let change_in_dir =
-					(angle_fix(poses_angle - current_dir) < Math.PI ?
-					 1 : -1);
+			let change_in_dir =
+				(angle_fix(poses_angle - current_dir) < Math.PI ?
+				 1 : -1);
 
-				change_in_dir = modify_change_in_dir(
-					change_in_dir, attack.vel, start_vel, min_vel);
+			change_in_dir = modify_change_in_dir(
+				change_in_dir, attack.vel, start_vel, min_vel);
 
-				if (between(-0.05, poses_angle - current_dir, 0.05)) {
-					change_in_dir = poses_angle - current_dir;
-				}
+			if (between(-0.05, poses_angle - current_dir, 0.05)) {
+				change_in_dir = poses_angle - current_dir;
+			}
 
-				attack.dir += change_in_dir;
+			attack.dir += change_in_dir;
 
-				attack.dir = angle_fix(attack.dir);
+			attack.dir = angle_fix(attack.dir);
 
-				let delta = angle_vel_to_delta(
-					attack.dir,
-					attack.vel
-				);
+			let delta = angle_vel_to_delta(
+				attack.dir,
+				attack.vel
+			);
 
-				update_status(
-					attack,
-					"pos",
-					add_vec,
-					delta
-				);
+			update_status(
+				attack,
+				"pos",
+				add_vec,
+				delta
+			);
 
-				attack.size = [Math.abs(delta[0]) + 1,
-							   Math.abs(delta[1]) + 1];
+			attack.size = [Math.abs(delta[0]) + 1,
+						   Math.abs(delta[1]) + 1];
 
-				attack.trail.push(attack.pos);
-			};
+			attack.trail.push(attack.pos);
+		};
 
 
 		let effects = {
@@ -200,10 +220,10 @@ var game = game || {};
 
 			pos: add_vec(
 				unit.pos,
-				[-(unit.dir[0]
+				[-(Math.cos(unit.dir) * unit.vel
 				   + (-1
-					  * unit.dir[1])),
-				 -unit.dir[1]]
+					  * Math.sin(unit.dir) * unit.vel)),
+				 -Math.sin(unit.dir) * unit.vel]
 			),
 			vel: start_vel,
 			size: [1, 1],

@@ -36,12 +36,12 @@ game.data = game.data || {};
 			));
 		}
 		
-		for (let i = 0; i < 10; i++) {
-			units.push(
-				ranger([10 + 3 * (i % 10),
-						30 + rand(0, 5) + 8 * Math.floor(i / 10)])
-			);
-		}
+		// for (let i = 0; i < 10; i++) {
+		// 	units.push(
+		// 		ranger([10 + 3 * (i % 10),
+		// 				30 + rand(0, 5) + 8 * Math.floor(i / 10)])
+		// 	);
+		// }
 		
 		return units;
 	}

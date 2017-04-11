@@ -8,8 +8,7 @@ var game = game || {};
 	let enemy = pos => enemize_unit(normie(pos));
 
 	let enemize_unit = unit => {
-		unit.vel = [0, 1];
-		unit.dir = [0, 1];
+		unit.default_dir = [0, 1];
 		unit.team = "enemy";
 
 		return unit;

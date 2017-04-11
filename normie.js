@@ -3,10 +3,12 @@
 var game = game || {};
 
 (() => {
+	let angle_vel_to_delta = game.maths.angle_vel_to_delta;
 	let add_vec = game.maths.add_vec;
 	let multiply_vec = game.maths.multiply_vec;
 	let eq_vec = game.maths.eq_vec;	
 	let randi = game.maths.randi;
+	let future_pos = game.maths.future_pos;
 	
 	let update_status = game.units.update_status;
 	let unit = game.units.unit;
@@ -27,8 +29,9 @@ var game = game || {};
 			if (enemy_team == null) { return; }
 
 			let attack_hitbox = {
-				pos: add_vec(normie.pos,
-							 normie.dir),
+				pos: future_pos(normie.pos,
+								normie.dir,
+							   	normie.vel),
 				size: [3, 1]
 			};
 
@@ -50,17 +53,27 @@ var game = game || {};
 				
 				// update
 				() => {
-					attack.trail.push(attack.pos);
+					if (unit.dead === true) { attack.dead = true; return; }
 					
+					attack.trail.push(attack.pos);
+
+					let delta = angle_vel_to_delta(
+						attack.dir,
+						attack.vel
+					);
+
+					let unit_delta = angle_vel_to_delta(
+						unit.dir,
+						unit.vel
+					);
+
 					update_status(
 						attack,
 						"pos",
 						add_vec,
-						[
-							attack.vel[0],
-							attack.attacker.vel[1]
-						])
-
+						add_vec(delta, unit_delta)
+					);
+					
 					update_status(
 						attack,
 						"ticks_left",
@@ -68,7 +81,6 @@ var game = game || {};
 						attack.ticks_left)
 
 					if (attack.ticks_left <= 0) {
-						console.log("died");
 						attack.dead = true;
 					}
 				},
@@ -77,15 +89,16 @@ var game = game || {};
 					name: "Strike",
 					pos: add_vec(
 						unit.pos,
-						[-(unit.dir[0]
+						[-(Math.cos(unit.dir) * unit.vel
 						   + (-1
-							  * unit.dir[1])),
-						 unit.dir[1]]
+							  * Math.sin(unit.dir) * unit.vel)),
+						 Math.sin(unit.dir) * unit.vel]
 					),
-					vel: [-unit.dir[1],
-						  0],
+					vel: 1,
+					dir: Math.atan2(0, -Math.sin(unit.dir)),
+					
 					size: [1, 1],
-					ticks_left: 2,
+					ticks_left: 5,
 					trail: [],
 					
 					dead: false,
@@ -94,6 +107,8 @@ var game = game || {};
 
 			return attack;
 		};
+
+		let start_vel = 1;
 
 		let normie = unit(
 			"Normie",
@@ -123,19 +138,27 @@ var game = game || {};
 							pause => pause - 1,
 							normie.try_to_move_in);
 					} else if (normie.try_to_move_in === 0) {
-						normie.vel = normie.dir;
+						normie.vel = start_vel;
 						normie.try_to_move_in = -1;
-					} else if (eq_vec(
-						normie.vel,
-						[0, 0]
-					)) {
+					} else if (normie.vel == 0) {
 						normie.try_to_move_in = 3;
 					} else {
+						normie.dir = Math.atan2(
+							normie.default_dir[1],
+							normie.default_dir[0]
+						);
+
+						let delta = angle_vel_to_delta(
+							normie.dir,
+							normie.vel
+						);
+						
 						update_status(
 							normie,
 							"pos",
 							add_vec,
-							normie.vel);
+							delta
+						);
 					}
 
 					if (normie.delay > 0) {
@@ -151,9 +174,10 @@ var game = game || {};
 			{
 				health: 200,
 				pos: pos,
-				vel: [0, -1],
+				vel: start_vel,
+				dir: Math.PI * 0.5,
+				default_dir: [0, -1],
 				size: [1, 1],
-				dir: [0, -1],
 
 				delay: 5,
 				try_to_move_in: 3,
